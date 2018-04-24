@@ -1,0 +1,105 @@
+package com.code.fis;
+
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.Stack;
+
+public class FISThread  extends Thread {
+	
+	private FileInfoService server;
+	private Socket socket;
+	private String serverFolder;
+	
+	private BufferedReader in;
+	private PrintWriter out;
+	
+	private DataInputStream inputStream;
+	OutputStream output;
+	
+	ObjectOutputStream objectOutput = null;
+	
+	public FISThread(FileInfoService server,Socket socket,String serverFolder) throws IOException{
+		this.server=server;
+		this.socket=socket;
+		this.serverFolder=serverFolder;
+		
+		//in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		//out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
+		
+		//inputStream = new DataInputStream(socket.getInputStream());
+		
+		try {
+			start();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public void run() {
+		try {
+			while (true) {
+
+			//	String str = in.readLine();
+				inputStream = new DataInputStream(socket.getInputStream());
+				
+				String str=inputStream.readUTF();
+				System.out.println("Incoming command ..." + str);
+
+				if (str != null && str.length() > 0) {
+					
+					String[] split = str.split(" ");
+					String command = split[0];
+					CommandRespone response = null;
+					Response res=new Response();
+					if (CommandTypes.isValidCommand(command)) {
+						Stack<String> dirStack=new Stack<String>();
+						dirStack.push(serverFolder);
+						RequestCommand request = new RequestCommand(str, serverFolder);
+						request.setDirStack(dirStack);
+						response = new CommandHandlerFactory().getCommandHandler(command).handle(request);
+						
+						res.setResponse(response.toString());
+						res.setTerminate(response.isTerminate());
+
+					} else {
+						response = new CommandRespone();
+						response.setResponseCodes(ResponseCodes.UNKNOWNCOMMAND);
+						res.setResponse(response.toString());
+						
+					}
+					if(response!=null){
+						 output=socket.getOutputStream();
+						objectOutput = new ObjectOutputStream(output);
+						//out.println(res);
+						objectOutput.writeObject(res);
+						/*if (res.isTerminate()) {
+							break;
+						}*/
+					}
+					
+
+				}
+
+			}
+		//	System.out.println("Closing...");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				socket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+	}
+	
+	
+
+}

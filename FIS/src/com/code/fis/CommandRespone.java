@@ -1,0 +1,44 @@
+package com.code.fis;
+
+public class CommandRespone {
+	
+	private ResponseCodes responseCodes;
+	private String response;
+	private boolean isTerminate;
+	
+	public boolean isTerminate() {
+		return isTerminate;
+	}
+
+	public void setTerminate(boolean isTerminate) {
+		this.isTerminate = isTerminate;
+	}
+
+	public ResponseCodes getResponseCodes() {
+		return responseCodes;
+	}
+
+	public void setResponseCodes(ResponseCodes responseCodes) {
+		this.responseCodes = responseCodes;
+	}
+
+	public String getResponse() {
+		return response;
+	}
+
+	public void setResponse(String response) {
+		this.response = response;
+	}
+
+	
+
+	@Override
+	public String toString() {
+		return response +"\n" +responseCodes;
+	}
+	
+	
+	
+	
+
+}
